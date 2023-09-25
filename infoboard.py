@@ -30,6 +30,7 @@ final_url_pkmn = BASE_URL_PKMN.format(pkmn_id)
 pkmn_data = requests.get(final_url_pkmn).json()
 # pprint(pkmn_data)
 
+sprite = requests.get(pkmn_data["sprites"]["front_default"])
 name = pkmn_data["name"]
 id = pkmn_data["id"]
 height = str(pkmn_data["height"])
