@@ -8,7 +8,8 @@ from io import BytesIO
 from pprint import pprint
 # import xbm
 import io
-import pyexiv2
+# import pyexiv2
+import cairo
 
 id = rand.randint(0, 1017)
 # id = 483
@@ -45,6 +46,7 @@ im2.thumbnail((48,48), 2)
 im2 = im2.convert('1')
 im2.save("sprite.png")
 im2.save("sprite.bmp", "BMP")
+im2.save("sprite.xbm", "XBM")
 
 
 # xmp_obj = xmp.XMP()
@@ -62,3 +64,14 @@ im2.save("sprite.bmp", "BMP")
 #     f.write(spritex_xmp)
 
 
+# image = cairo.ImageSurface.create_from_png("sprite.png")
+
+# # Create a bitmap surface
+# bitmap = cairo.ImageSurface.create_from_x11(image.get_width(), image.get_height())
+
+# # Draw the image to the bitmap surface
+# cairo.Context(bitmap).set_source_surface(image)
+# cairo.Context(bitmap).paint()
+
+# # Save the bitmap surface
+# bitmap.write_to_png("image.xpm")
