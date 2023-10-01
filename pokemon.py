@@ -13,14 +13,17 @@ import cairo
 
 id = rand.randint(0, 1017)
 # id = 483
+# Favorites
+# 250
+
 
 BASE_URL_PKMN = "https://pokeapi.co/api/v2/pokemon/{0}"
 final_url_pkmn = BASE_URL_PKMN.format(id)
-# pkmn_data = requests.get(final_url_pkmn).json()
+pkmn_data = requests.get(final_url_pkmn).json()
 # pprint(pkmn_data)
 
-# print(pkmn_data["sprites"]["front_default"])
-# print(pkmn_data["name"])
+print(pkmn_data["sprites"]["front_default"])
+print(pkmn_data["name"])
 # print(pkmn_data["id"])
 # print("Height " + str(pkmn_data["height"]) + "dm")
 # print("Weight " + str(pkmn_data["weight"]) + "hg")
@@ -33,9 +36,9 @@ final_url_pkmn = BASE_URL_PKMN.format(id)
 #         print("First Appearance: Pkmn " + pkmn_data["game_indices"][0]["version"]["name"])
 
 # sprite = requests.get(pkmn_data["sprites"]["front_default"])
-# print(sprite.content)
-# urllib.request.urlretrieve(pkmn_data["sprites"]["front_default"], "sprite.png")
-im = Image.open("483.png")
+# print(pkmn_data["sprites"]["front_default"])
+urllib.request.urlretrieve(pkmn_data["sprites"]["front_default"], "sprite.png")
+im = Image.open("sprite.png")
 im.size  # (364, 471)
 im.getbbox()  # (64, 89, 278, 267)
 im2 = im.crop(im.getbbox())
@@ -45,8 +48,11 @@ im2.size  # (214, 178)
 im2.thumbnail((48,48), 2)
 im2.save("sprite_resized_unedited.png")
 im2 = im2.convert('1')
-im2.save("sprite.png")
-# im2.save("sprite.bmp", "BMP")
+
+try:
+    im2.save("sprite.png")
+except:
+    im2.save("sprite.bmp", "BMP")
 im2.save("sprite.xbm", "XBM")
 
 
