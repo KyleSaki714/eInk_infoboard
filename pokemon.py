@@ -1,5 +1,4 @@
 import random as rand
-import pokebase as pb
 import requests
 import urllib.request
 from PIL import ImageOps
@@ -19,21 +18,38 @@ id = rand.randint(0, 1017)
 
 BASE_URL_PKMN = "https://pokeapi.co/api/v2/pokemon/{0}"
 final_url_pkmn = BASE_URL_PKMN.format(id)
+
+BASE_URL_CHARACTERISTIC = ""
+
 pkmn_data = requests.get(final_url_pkmn).json()
 # pprint(pkmn_data)
 
 print(pkmn_data["sprites"]["front_default"])
 print(pkmn_data["name"])
-# print(pkmn_data["id"])
+print(pkmn_data["id"])
+spritesVersions = pkmn_data["sprites"]["versions"]
+done = False
+for gen in spritesVersions:
+    if done == True: break
+    for game in spritesVersions[gen]:
+        if (spritesVersions[gen][game]["front_default"] != None):
+            print("first appearance: ",gen);
+            print("(games: ",end="")
+            for firstAppearanceGenGame in spritesVersions[gen]:
+                print(firstAppearanceGenGame,", ", end="")
+            done = True
+            print()
+            break
+
 # print("Height " + str(pkmn_data["height"]) + "dm")
 # print("Weight " + str(pkmn_data["weight"]) + "hg")
-# types = pkmn_data["types"]
-# for type in types:
-#     print(type["type"]["name"])
-
-# if "game_indices" in pkmn_data:
-#     if len(pkmn_data["game_indices"]) != 0:
-#         print("First Appearance: Pkmn " + pkmn_data["game_indices"][0]["version"]["name"])
+types = pkmn_data["types"]
+for type in types:
+    print(type["type"]["name"],", ",end="")
+print()
+if "game_indices" in pkmn_data:
+    if len(pkmn_data["game_indices"]) != 0:
+        print("First Appearance: Pkmn " + pkmn_data["game_indices"][0]["version"]["name"])
 
 # sprite = requests.get(pkmn_data["sprites"]["front_default"])
 # print(pkmn_data["sprites"]["front_default"])
