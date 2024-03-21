@@ -76,7 +76,6 @@ pokeApi_data = requests.get(final_url_pkmn).json()
 # pprint(pkmn_data)
 
 pokeInfo = dict()
-pokeInfo["sprite"] = pokeApi_data["sprites"]["front_default"]
 pokeInfo['name'] = pokeApi_data["name"]
 pokeInfo['id'] = pokeApi_data["id"]
 pokeInfo['firstAppearance'] = getFirstAppearance(pokeApi_data);
@@ -96,7 +95,8 @@ print(pokeInfo['types'])
 
 # sprite = requests.get(pkmn_data["sprites"]["front_default"])
 # print(pkmn_data["sprites"]["front_default"])
-urllib.request.urlretrieve(pokeInfo['sprite'], "sprite.png")
+
+urllib.request.urlretrieve(pokeApi_data["sprites"]["front_default"], "sprite.png")
 im = Image.open("sprite.png")
 im.size  # (364, 471)
 im.getbbox()  # (64, 89, 278, 267)
@@ -114,6 +114,7 @@ except:
     im2.save("sprite.bmp", "BMP")
 im2.save("sprite.xbm", "XBM")
 
+pokeInfo["sprite"] = Image.open("sprite.xbm")
 
 # xmp_obj = xmp.XMP()
 # xmp_obj.add_data(im2.tobytes())
