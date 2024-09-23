@@ -83,7 +83,6 @@ pokeInfo['height'] = getHeight(pokeApi_data)
 pokeInfo['weight'] = getWeight(pokeApi_data)
 pokeInfo['types'] = getTypes(pokeApi_data)
 
-print(pokeInfo["sprite"])
 print(pokeInfo['name'])
 print(pokeApi_data['id'])
 print(pokeInfo['firstAppearance'])
@@ -96,22 +95,31 @@ print(pokeInfo['types'])
 # sprite = requests.get(pkmn_data["sprites"]["front_default"])
 # print(pkmn_data["sprites"]["front_default"])
 
+# get sprite from api
 urllib.request.urlretrieve(pokeApi_data["sprites"]["front_default"], "sprite.png")
 im = Image.open("sprite.png")
 im.size  # (364, 471)
 im.getbbox()  # (64, 89, 278, 267)
-im2 = im.crop(im.getbbox())
+
+# crop to bounding box
+im2 = im.crop(im.getbbox()) 
 # im2 = ImageOps.solarize(im2, 128)
 im2.size  # (214, 178)
-# im2.resize((128, 64))
-im2.thumbnail((48,48), 2)
+im2 = im2.resize((64, 64))
+
+# resize sprite using thumbnail function size to 48x48 px, and use Bilinear resampling https://pillow.readthedocs.io/en/stable/reference/Image.html#resampling-filters
+# used to be 48x48
+# im2.thumbnail((64,64), 2)
 im2.save("sprite_resized_unedited.png")
 im2 = im2.convert('1')
 
+# export to png for debugging purposes
 try:
     im2.save("sprite.png")
 except:
     im2.save("sprite.bmp", "BMP")
+
+# export to xbm for esp32
 im2.save("sprite.xbm", "XBM")
 
 pokeInfo["sprite"] = Image.open("sprite.xbm")
