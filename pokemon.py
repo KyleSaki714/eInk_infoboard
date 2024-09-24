@@ -6,6 +6,7 @@ from PIL import Image
 from io import BytesIO
 from pprint import pprint
 import io
+import json
 
 id = rand.randint(0, 1017)
 
@@ -103,4 +104,11 @@ except:
 # export to xbm for esp32
 im2.save("sprite.xbm", "XBM")
 
-pokeInfo["sprite"] = Image.open("sprite.xbm")
+xbm = open("sprite.xbm", "r")
+xbmTxt = xbm.read()
+pokeInfo["sprite"] = xbmTxt
+xbm.close()
+
+print(pokeInfo)
+with open("pokeinfo.json" , "w") as write:
+    json.dump(pokeInfo, write)
