@@ -5,16 +5,9 @@ from PIL import ImageOps
 from PIL import Image
 from io import BytesIO
 from pprint import pprint
-# import xbm
 import io
-# import pyexiv2
-import cairo
 
 id = rand.randint(0, 1017)
-# id = 483
-# id = 506/
-# Favorites
-# 250
 
 def getFirstAppearance(pokeApi_data):
 
@@ -70,10 +63,7 @@ def getWeight(pokeApi_data):
 BASE_URL_PKMN = "https://pokeapi.co/api/v2/pokemon/{0}"
 final_url_pkmn = BASE_URL_PKMN.format(id)
 
-BASE_URL_CHARACTERISTIC = ""
-
 pokeApi_data = requests.get(final_url_pkmn).json()
-# pprint(pkmn_data)
 
 pokeInfo = dict()
 pokeInfo['name'] = pokeApi_data["name"]
@@ -86,31 +76,22 @@ pokeInfo['types'] = getTypes(pokeApi_data)
 print(pokeInfo['name'])
 print(pokeApi_data['id'])
 print(pokeInfo['firstAppearance'])
-# print("Height " + str(pokeApi_data["height"]) + "dm")
 print(pokeInfo["height"])
-# print("Weight " + str(pokeApi_data["weight"]) + "hg")
 print(pokeInfo['weight'])
 print(pokeInfo['types'])
-
-# sprite = requests.get(pkmn_data["sprites"]["front_default"])
-# print(pkmn_data["sprites"]["front_default"])
 
 # get sprite from api
 urllib.request.urlretrieve(pokeApi_data["sprites"]["front_default"], "sprite.png")
 im = Image.open("sprite.png")
-im.size  # (364, 471)
-im.getbbox()  # (64, 89, 278, 267)
 
 # crop to bounding box
 im2 = im.crop(im.getbbox()) 
-# im2 = ImageOps.solarize(im2, 128)
-im2.size  # (214, 178)
-im2 = im2.resize((64, 64))
 
 # resize sprite using thumbnail function size to 48x48 px, and use Bilinear resampling https://pillow.readthedocs.io/en/stable/reference/Image.html#resampling-filters
-# used to be 48x48
-# im2.thumbnail((64,64), 2)
+im2 = im2.resize((64, 64), 2)
 im2.save("sprite_resized_unedited.png")
+
+# convert image to 1 bit (b/w)
 im2 = im2.convert('1')
 
 # export to png for debugging purposes
@@ -123,30 +104,3 @@ except:
 im2.save("sprite.xbm", "XBM")
 
 pokeInfo["sprite"] = Image.open("sprite.xbm")
-
-# xmp_obj = xmp.XMP()
-# xmp_obj.add_data(im2.tobytes())
-
-# with io.open("sprite.xmp", "wb") as f:
-#     f.write(xmp_obj.toString())
-
-# print(bytes.hex())
-
-# spritex = pyexiv2.Image("sprite.png")
-# spritex_xmp = spritex.read_raw_xmp()
-
-# with io.open("sprite.xmp", "wb") as f:
-#     f.write(spritex_xmp)
-
-
-# image = cairo.ImageSurface.create_from_png("sprite.png")
-
-# # Create a bitmap surface
-# bitmap = cairo.ImageSurface.create_from_x11(image.get_width(), image.get_height())
-
-# # Draw the image to the bitmap surface
-# cairo.Context(bitmap).set_source_surface(image)
-# cairo.Context(bitmap).paint()
-
-# # Save the bitmap surface
-# bitmap.write_to_png("image.xpm")
