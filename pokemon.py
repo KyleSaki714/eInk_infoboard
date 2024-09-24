@@ -1,3 +1,4 @@
+from flask import Flask, jsonify
 import random as rand
 import requests
 import urllib.request
@@ -61,6 +62,8 @@ def getWeight(pokeApi_data):
     hgToPounds = 0.2204622622
     return str(round(num * hgToPounds, 2)) + " lbs"
 
+app = Flask(__name__)
+
 BASE_URL_PKMN = "https://pokeapi.co/api/v2/pokemon/{0}"
 final_url_pkmn = BASE_URL_PKMN.format(id)
 
@@ -112,3 +115,10 @@ xbm.close()
 print(pokeInfo)
 with open("pokeinfo.json" , "w") as write:
     json.dump(pokeInfo, write)
+
+@app.get('/')
+def index():
+    return jsonify(pokeInfo)
+
+if __name__ == '__main__':
+    app.run()
