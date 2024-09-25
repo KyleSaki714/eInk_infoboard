@@ -122,4 +122,4 @@ def index():
     return jsonify(pokeInfo)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5050)
