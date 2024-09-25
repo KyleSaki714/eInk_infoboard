@@ -80,14 +80,17 @@ const unsigned char im_bits [] PROGMEM = {
 #define margin_imgTxt 2
 #define margine_txtLines 1 
 
-U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);
+// for adafruit lcd
+U8G2_SSD1305_128X64_ADAFRUIT_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21);
+// for noname lcd
+//U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);
 
 void setup(void) {
   Serial.begin(9600);
   // Serial.print("sup0");
 
   u8g2.begin();
-  // Serial.print("sup1");
+  Serial.print("sup1");
   u8g2.clearBuffer();
   // u8g2.setFont(u8g2_font_profont17_tf);
   u8g2.setFont(u8g2_font_DigitalDiscoThin_tf);
