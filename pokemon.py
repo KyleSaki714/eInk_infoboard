@@ -5,7 +5,6 @@ import urllib.request
 from PIL import ImageOps
 from PIL import Image
 from io import BytesIO
-from pprint import pprint
 import io
 import json
 
