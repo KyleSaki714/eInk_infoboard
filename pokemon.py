@@ -124,6 +124,7 @@ def index():
 
 @app.get('/sprite')
 def sprite():
+    generateNewPkmn()
     return send_from_directory("", "sprite.xbm")
 
 if __name__ == '__main__':

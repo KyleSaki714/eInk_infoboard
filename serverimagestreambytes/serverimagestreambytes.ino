@@ -10,7 +10,7 @@
 
 const char* ssid = "spl-public";
 const char* password = "your_PASSWORD";
-const char* bitmapUrl = "https://eink-infoboard.onrender.com/sprite";
+const char* bitmapUrl = "https://eink-infoboard.onrender.com";
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -74,8 +74,14 @@ void setup() {
 
   delay(500);
 
+  HTTPClient tempRequest;
+  tempRequest.begin(bitmapUrl);
+  delay(2000);
+  tempRequest.end();
+  Serial
+  delay(2000);
   HTTPClient http;
-  http.begin(bitmapUrl);
+  http.begin("https://eink-infoboard.onrender.com/sprite");
   int httpCode = http.GET();
   
   if (httpCode == 200) {
