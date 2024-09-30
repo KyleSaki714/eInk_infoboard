@@ -1,4 +1,3 @@
-from flask import Flask, jsonify, send_from_directory
 import random as rand
 import requests
 import urllib.request
@@ -7,7 +6,6 @@ from PIL import Image
 from io import BytesIO
 import io
 import json
-from datetime import datetime
 
 def getFirstAppearance(pokeApi_data):
 
@@ -79,9 +77,7 @@ def getSprite(pokeApi_data):
     im2 = im2.convert('1')
 
     # export to png for debugging purposes
-    # try:
-    #     im2.save("sprite.png")
-    # except:
+    im2.save("sprite.png")
     im2.save("sprite.bmp", "BMP")
 
     # export to xbm for esp32
@@ -112,32 +108,18 @@ def generateNewPkmn():
     pokeInfo["sprite"] = getSprite(pokeApi_data)
     return pokeInfo
 
-app = Flask(__name__)
-
-lastChecked = None
-pokeInfo = None
 
 # with open("pokeinfo.json" , "w") as write:
 #     json.dump(pokeInfo, write)
 
-@app.get('/')
-def index():
-    global lastChecked
-    global pokeInfo
-    if ((lastChecked != None) and datetime.today().date() > lastChecked):
-        # retrieve a new pokeinfo
-        lastChecked = datetime.today().date()
-        print("new pkmn")
-        pokeInfo = generateNewPkmn()
-        return jsonify(pokeInfo)
-    else:
-        # return cached pokeinfo
-        print("fdsafds")
-        return jsonify(pokeInfo)
+# pokeInfo = generateNewPkmn()
+# print(pokeInfo)
 
-@app.get('/sprite')
-def sprite():
-    return send_from_directory("", "sprite.bmp")
+id = rand.randint(0, 1017)
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=10000)
+BASE_URL_PKMN = "https://pokeapi.co/api/v2/pokemon/{0}"
+final_url_pkmn = BASE_URL_PKMN.format(id)
+
+pokeApi_data = requests.get(final_url_pkmn).json()
+sprite = getSprite(pokeApi_data)
+print(sprite)
