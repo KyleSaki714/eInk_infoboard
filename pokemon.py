@@ -137,7 +137,7 @@ def index():
 
 @app.get('/sprite')
 def sprite():
-    return send_from_directory("", "sprite.bmp")
+    return send_from_directory("", "sprite.xbm")
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)
