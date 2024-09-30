@@ -114,26 +114,13 @@ def generateNewPkmn():
 
 app = Flask(__name__)
 
-lastChecked = None
-pokeInfo = None
-
 # with open("pokeinfo.json" , "w") as write:
 #     json.dump(pokeInfo, write)
 
 @app.get('/')
 def index():
-    global lastChecked
-    global pokeInfo
-    if ((lastChecked != None) and datetime.today().date() > lastChecked):
-        # retrieve a new pokeinfo
-        lastChecked = datetime.today().date()
-        print("new pkmn")
-        pokeInfo = generateNewPkmn()
-        return jsonify(pokeInfo)
-    else:
-        # return cached pokeinfo
-        print("fdsafds")
-        return jsonify(pokeInfo)
+    pokeInfo = generateNewPkmn()
+    return jsonify(pokeInfo)
 
 @app.get('/sprite')
 def sprite():
