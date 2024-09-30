@@ -14,57 +14,41 @@ const char* bitmapUrl = "https://eink-infoboard.onrender.com/sprite";
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-// Function to flip a monochrome bitmap horizontally
-void flipHorizontal(uint8_t* bitmap, int width, int height) {
-  int bytesPerRow = width / 8;
-
-  // Loop through each row
-  for (int y = 0; y < height; y++) {
-    uint8_t* rowStart = bitmap + (y * bytesPerRow);  // Pointer to the start of the row
-    // Swap bytes horizontally within the row
-    for (int x = 0; x < bytesPerRow / 2; x++) {
-      // Swap bytes at position x and (bytesPerRow - x - 1)
-      uint8_t temp = rowStart[x];
-      rowStart[x] = reverseBits(rowStart[bytesPerRow - x - 1]);
-      rowStart[bytesPerRow - x - 1] = reverseBits(temp);
-    }
-
-    // If the number of bytes per row is odd, reverse the middle byte
-    if (bytesPerRow % 2 != 0) {
-      rowStart[bytesPerRow / 2] = reverseBits(rowStart[bytesPerRow / 2]);
-    }
-  }
+int parseXBMWidth(const String& xbmData) {
+  int widthIndex = xbmData.indexOf("_width") + 7;
+  return xbmData.substring(widthIndex, xbmData.indexOf('\n', widthIndex)).toInt();
 }
 
-// Helper function to reverse bits in a byte
-uint8_t reverseBits(uint8_t b) {
-  b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-  b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-  b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-  return b;
+int parseXBMHeight(const String& xbmData) {
+  int heightIndex = xbmData.indexOf("_height") + 8;
+  return xbmData.substring(heightIndex, xbmData.indexOf('\n', heightIndex)).toInt();
 }
 
-void flipVertical(uint8_t* bitmap, int width, int height) {
-  for (int y = 0; y < height / 2; y++) {
-    for (int x = 0; x < width / 8; x++) {
-      uint8_t temp = bitmap[y * (width / 8) + x];
-      bitmap[y * (width / 8) + x] = bitmap[(height - 1 - y) * (width / 8) + x];
-      bitmap[(height - 1 - y) * (width / 8) + x] = temp;
+uint8_t* parseXBMArray(const String& xbmData) {
+  int dataStart = xbmData.indexOf("{") + 1;
+  int dataEnd = xbmData.indexOf("}");
+  String bitmapData = xbmData.substring(dataStart, dataEnd);
+  
+  // Count the number of hex bytes in the array
+  int byteCount = 0;
+  for (int i = 0; i < bitmapData.length(); i++) {
+    if (bitmapData[i] == '0' && bitmapData[i+1] == 'x') {
+      byteCount++;
     }
   }
-}
 
-uint8_t reverseByte(uint8_t b) {
-  b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-  b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-  b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-  return b;
-}
-
-void reverseBitmap(uint8_t* bitmap, int len) {
-  for (int i = 0; i < len; i++) {
-    bitmap[i] = reverseByte(bitmap[i]);
+  // Allocate memory for the array
+  uint8_t* xbmArray = new uint8_t[byteCount];
+  
+  // Parse the hex bytes and fill the array
+  int arrayIndex = 0;
+  for (int i = 0; i < bitmapData.length(); i++) {
+    if (bitmapData[i] == '0' && bitmapData[i+1] == 'x') {
+      xbmArray[arrayIndex++] = strtoul(bitmapData.substring(i+2, i+4).c_str(), NULL, 16);
+    }
   }
+
+  return xbmArray;
 }
 
 void setup() {
@@ -99,34 +83,24 @@ void setup() {
     Serial.print("image size: ");
     Serial.println(len);
 
-    // dynamically allocate array for image size
-    // uint8_t bitmap[SCREEN_HEIGHT * SCREEN_HEIGHT / 8] PROGMEM;
-    uint8_t* bitmap = new uint8_t[len];
+    String xbmData = http.getString();
+    Serial.println("Downloaded XBM data");
 
-    WiFiClient* stream = http.getStreamPtr();
-    size_t bytesRead = stream->readBytes(bitmap, len);
+    // Extract width and height from the XBM data
+    int width = parseXBMWidth(xbmData);
+    int height = parseXBMHeight(xbmData);
+    uint8_t* xbmArray = parseXBMArray(xbmData);
 
-    if (bytesRead == len) {
-      // Fix bit order and flip the image as needed
-      // reverseBitmap(bitmap, len);
-      // flipVertical(bitmap, 64, 64);  // Flip vertically to correct the orientation
 
-      display.clearDisplay();
-      
-      // Center the image if it is 64x64
-      // int x = (SCREEN_WIDTH - 64) / 2;  // X offset = (128 - 64) / 2 = 32
-      // int y = (SCREEN_HEIGHT - 64) / 2; // Y offset = (64 - 64) / 2 = 0
+    display.clearDisplay();
 
-      // Display the downloaded bitmap
-      display.drawBitmap(0, 0, bitmap, 64, 64, WHITE);
-      display.display();
+    display.drawXBitmap(0, 0, xbmArray, width, height, WHITE);
+    display.display();
 
-      Serial.println("Image displayed successfully.");
-    } else {
-      Serial.println("Failed to read complete image data.");
-    }
+    delete[] xbmArray;  // Free the allocated memory
 
-    delete[] bitmap;
+    Serial.println("Image displayed successfully.");
+
   } else {
     Serial.println("Failed to download image");
   }
