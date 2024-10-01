@@ -107,6 +107,7 @@ def generateNewPkmn():
     generateSprite(pokeApi_data)
     return pokeInfo
 
+
 app = Flask(__name__)
 
 lastKnownDay = datetime.today().date()
@@ -115,15 +116,24 @@ pokeInfo = generateNewPkmn()
 print(lastKnownDay)
 print(pokeInfo)
 
+# checks if a new pokemon must be generated for a new day.
+# if so, retrieves new pokemon data from PokeAPI.
+def checkNewDayNewPkmn():
+    global lastKnownDay
+    global pokeInfo
+    if (datetime.today().date() > lastKnownDay):
+        # new day
+        pokeInfo = generateNewPkmn()
+        print("new day: new pokemon generated")
+        # res += "<p>new day, new pokemon generated.</p>"
+    # print("new pkmn not generated")
+    
 @app.get('/')
 def index():
     global lastKnownDay
     global pokeInfo
+    checkNewDayNewPkmn()
     res = "<h1>Today's Pokemon: " + pokeInfo['name'] + "</h1>"
-    if (datetime.today().date() > lastKnownDay):
-        # new day
-        pokeInfo = generateNewPkmn()
-        res += "<p>new day, new pokemon generated.</p>"
     if (datetime.today().date() == lastKnownDay):
         res += "<p>come back tomorrow for a new pokemon!</p>"
     res += "<p>Please refer to the endpoints below</p><p>/pokeInfo: returns pokeInfo.json</p><p>/sprite: returns sprite.xbm</p>"
@@ -131,6 +141,7 @@ def index():
 
 @app.get('/pokemonInfo')
 def pokemonInfo():
+    checkNewDayNewPkmn()
     global pokeInfo
     return jsonify(pokeInfo)
 
