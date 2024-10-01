@@ -11,8 +11,8 @@
 const char* ssid = "spl-public";
 const char* password = "your_PASSWORD";
 const char* url = "https://eink-infoboard.onrender.com";
-const char* endpoint_pkmnInfo = "/pokemonInfo";
-const char* endpoint_sprite = "/sprite";
+const char* url_sprite = "https://eink-infoboard.onrender.com/sprite";
+const char* url_pkmnInfo = "https://eink-infoboard.onrender.com/pokemonInfo";
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -76,54 +76,37 @@ void setup() {
 
   delay(200);
 
-  // try to reach the server, on a timer to make sure the server is available
-  // retrieve pokemon info
-  HTTPClient pkmnInfo;
-  pkmnInfo.begin(url + endpoint_pkmnInfo);
-  int httpCode = 404;
-  Serial.println("Attempting to retrieve pokemon info from server...")
-  while (httpCode != 200) {
-    int httpCode = pkmnInfo.GET();
-    Serial.print(".");
-    delay(250);
+  HTTPClient http;
+  http.begin(url_sprite);
+  int httpCode = http.GET();
+  
+  if (httpCode == 200) {
+    int len = http.getSize(); // how many bytes the image is
+    Serial.print("image size: ");
+    Serial.println(len);
+
+    String xbmData = http.getString();
+    Serial.println("Downloaded XBM data");
+
+    // Extract width and height from the XBM data
+    int width = parseXBMWidth(xbmData);
+    int height = parseXBMHeight(xbmData);
+    uint8_t* xbmArray = parseXBMArray(xbmData);
+
+
+    display.clearDisplay();
+
+    display.drawXBitmap(0, 0, xbmArray, width, height, WHITE);
+    display.display();
+
+    delete[] xbmArray;  // Free the allocated memory
+
+    Serial.println("Image displayed successfully.");
+
+  } else {
+    Serial.println("Failed to download image");
   }
-  Serial.println("Successfully retrieved pokeInfo from server.");
-
-  ping.end();
-  
-
-  // delay(2000);
-  // HTTPClient http;
-  // http.begin("https://eink-infoboard.onrender.com/sprite");
-  // int httpCode = http.GET();
-  
-  // if (httpCode == 200) {
-  //   int len = http.getSize(); // how many bytes the image is
-  //   Serial.print("image size: ");
-  //   Serial.println(len);
-
-  //   String xbmData = http.getString();
-  //   Serial.println("Downloaded XBM data");
-
-  //   // Extract width and height from the XBM data
-  //   int width = parseXBMWidth(xbmData);
-  //   int height = parseXBMHeight(xbmData);
-  //   uint8_t* xbmArray = parseXBMArray(xbmData);
-
-
-  //   display.clearDisplay();
-
-  //   display.drawXBitmap(0, 0, xbmArray, width, height, WHITE);
-  //   display.display();
-
-  //   delete[] xbmArray;  // Free the allocated memory
-
-  //   Serial.println("Image displayed successfully.");
-
-  // } else {
-  //   Serial.println("Failed to download image");
-  // }
-  // http.end();
+  http.end();
 
 }
 
