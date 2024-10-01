@@ -203,7 +203,7 @@ void setup() {
 
   display.clearDisplay();
 
-  display.drawXBitmap(0, 0, xbmArray, width, height, WHITE);
+  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
   display.display();
 
   delete[] xbmArray;  // Free the allocated memory
