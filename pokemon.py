@@ -114,17 +114,33 @@ def generateNewPkmn():
 
 app = Flask(__name__)
 
-# with open("pokeinfo.json" , "w") as write:
-#     json.dump(pokeInfo, write)
+lastKnownDay = datetime.today().date()
+pokeInfo = generateNewPkmn()
+
+print(lastKnownDay)
+print(pokeInfo)
 
 @app.get('/')
 def index():
-    pokeInfo = generateNewPkmn()
+    global lastKnownDay
+    global pokeInfo
+    res = "<h1>Today's Pokemon: " + pokeInfo['name'] + "</h1><p>Please refer to the endpoints below</p>"
+    if (datetime.today().date() > lastKnownDay):
+        # new day
+        pokeInfo = generateNewPkmn()
+        res += "<p>new day, new pokemon generated.</p>"
+    if (datetime.today().date() == lastKnownDay):
+        res += "<p>come back tomorrow for a new pokemon!</p>"
+    res += "<p>/pokeInfo: returns pokeInfo.json</p><p>/sprite: returns sprite.xbm</p>"
+    return res
+
+@app.get('/pokemonInfo')
+def pokemonInfo():
+    global pokeInfo
     return jsonify(pokeInfo)
 
 @app.get('/sprite')
 def sprite():
-    generateNewPkmn()
     return send_from_directory("", "sprite.xbm")
 
 if __name__ == '__main__':
