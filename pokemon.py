@@ -62,8 +62,8 @@ def getWeight(pokeApi_data):
 
 # retrieves sprite image from pokeapi data,
 # then converts into 1-bit displayable on ssd1306 displays .
-# returns a string xbm image representation.
-def getSprite(pokeApi_data):
+# saves the xbm image to /
+def generateSprite(pokeApi_data):
     # get sprite from api
     urllib.request.urlretrieve(pokeApi_data["sprites"]["front_default"], "sprite.png")
     im = Image.open("sprite.png")
@@ -82,16 +82,11 @@ def getSprite(pokeApi_data):
     # try:
     #     im2.save("sprite.png")
     # except:
-    im2.save("sprite.bmp", "BMP")
+    # im2.save("sprite.bmp", "BMP")
 
     # export to xbm for esp32
     im2.save("sprite.xbm", "XBM")
 
-    xbm = open("sprite.xbm", "r")
-    xbmTxt = xbm.read()
-    res = xbmTxt
-    xbm.close()
-    return res
 
 def generateNewPkmn():
     # new random id
@@ -109,7 +104,7 @@ def generateNewPkmn():
     pokeInfo['height'] = getHeight(pokeApi_data)
     pokeInfo['weight'] = getWeight(pokeApi_data)
     pokeInfo['types'] = getTypes(pokeApi_data)
-    pokeInfo["sprite"] = getSprite(pokeApi_data)
+    generateSprite(pokeApi_data)
     return pokeInfo
 
 app = Flask(__name__)
@@ -124,14 +119,14 @@ print(pokeInfo)
 def index():
     global lastKnownDay
     global pokeInfo
-    res = "<h1>Today's Pokemon: " + pokeInfo['name'] + "</h1><p>Please refer to the endpoints below</p>"
+    res = "<h1>Today's Pokemon: " + pokeInfo['name'] + "</h1>"
     if (datetime.today().date() > lastKnownDay):
         # new day
         pokeInfo = generateNewPkmn()
         res += "<p>new day, new pokemon generated.</p>"
     if (datetime.today().date() == lastKnownDay):
         res += "<p>come back tomorrow for a new pokemon!</p>"
-    res += "<p>/pokeInfo: returns pokeInfo.json</p><p>/sprite: returns sprite.xbm</p>"
+    res += "<p>Please refer to the endpoints below</p><p>/pokeInfo: returns pokeInfo.json</p><p>/sprite: returns sprite.xbm</p>"
     return res
 
 @app.get('/pokemonInfo')
