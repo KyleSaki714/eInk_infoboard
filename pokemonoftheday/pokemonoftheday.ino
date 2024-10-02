@@ -90,6 +90,87 @@ uint8_t* parseXBMArray(const String& xbmData) {
   return xbmArray;
 }
 
+void retrievePokemonInfo(HTTPClient* https, WiFiClientSecure* client, JSONVar* pokeInfo) {
+  //Initializing an HTTPS communication using the secure client
+  Serial.print("[HTTPS] begin...\n");
+  if (https->begin(*client, server_pkmnInfo)) {  // HTTPS
+    Serial.print("[HTTPS] GET...\n");
+
+    // start connection and send HTTP header
+    int httpCode = https->GET();
+    
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+    // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
+    // file found at server
+      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+        // print server response payload
+        String content = https->getString();
+        Serial.print("Content: ");
+        Serial.println(content);
+        //Parse JSON
+        *pokeInfo = JSON.parse(content);
+      }
+    }
+    else {
+      Serial.printf("[HTTPS] GET... failed, error: %s\n", https->errorToString(httpCode).c_str());
+    }
+    https->end();
+  } else {
+    Serial.println("[HTTPS] Failed to retrieve pokemonInfo");
+  }
+}
+
+void retrievePokemonSprite(HTTPClient* https, WiFiClientSecure* client, String* xbmData) {
+  // retrieve sprite
+  if (https->begin(*client, server_sprite)) {  // HTTPS
+    Serial.print("[HTTPS] GET...\n");
+
+    // start connection and send HTTP header
+    int httpCode = https->GET();
+    
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+    // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
+    // file found at server
+      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+        *xbmData = https->getString();
+        Serial.println("Downloaded sprite XBM data");
+      }
+    }
+    else {
+      Serial.printf("[HTTPS] GET... failed, error: %s\n", https->errorToString(httpCode).c_str());
+    }
+    https->end();
+  } else {
+    Serial.println("[HTTPS] Failed to retrieve sprite");
+  }
+}
+
+void retrieveData(WiFiClientSecure* client, JSONVar* pokeInfo, String* xbmData) {
+  if(client) {
+    // set secure client with certificate
+    // client->setCACert(root_ca);
+    client->setInsecure();
+    //create an HTTPClient instance
+    HTTPClient https;
+
+    retrievePokemonInfo(&https, client, pokeInfo);
+
+    retrievePokemonSprite(&https, client, xbmData);
+
+  }
+  else {
+    Serial.printf("[HTTPS] Unable to connect\n");
+  }
+
+  client->stop();
+
+  delete client;
+}
+
 void setup() {
   Serial.begin(115200);
   delay(100);
@@ -114,73 +195,7 @@ void setup() {
   Serial.print("Connected to network with IP Address: ");
   Serial.println(WiFi.localIP());
 
-  if(client) {
-    // set secure client with certificate
-    // client->setCACert(root_ca);
-    client->setInsecure();
-    //create an HTTPClient instance
-    HTTPClient https;
-
-    //Initializing an HTTPS communication using the secure client
-    Serial.print("[HTTPS] begin...\n");
-    if (https.begin(*client, server_pkmnInfo)) {  // HTTPS
-      Serial.print("[HTTPS] GET...\n");
-
-      // start connection and send HTTP header
-      int httpCode = https.GET();
-      
-      // httpCode will be negative on error
-      if (httpCode > 0) {
-      // HTTP header has been send and Server response header has been handled
-       Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
-      // file found at server
-        if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-          // print server response payload
-          String content = https.getString();
-          Serial.print("Content: ");
-          Serial.println(content);
-          //Parse JSON
-          pokeInfo = JSON.parse(content);
-        }
-      }
-      else {
-        Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
-      }
-      https.end();
-    } else {
-      Serial.println("[HTTPS] Failed to retrieve pokemonInfo");
-    }
-
-    // retrieve sprite
-    if (https.begin(*client, server_sprite)) {  // HTTPS
-      Serial.print("[HTTPS] GET...\n");
-
-      // start connection and send HTTP header
-      int httpCode = https.GET();
-      
-      // httpCode will be negative on error
-      if (httpCode > 0) {
-      // HTTP header has been send and Server response header has been handled
-       Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
-      // file found at server
-        if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-          xbmData = https.getString();
-          Serial.println("Downloaded sprite XBM data");
-        }
-      }
-      else {
-        Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
-      }
-      https.end();
-    } else {
-      Serial.println("[HTTPS] Failed to retrieve pokemonInfo");
-    }
-  }
-  else {
-    Serial.printf("[HTTPS] Unable to connect\n");
-  }
-
-  client->stop();
+  retrieveData(client, &pokeInfo, &xbmData);
 
   // check json
   if (JSON.typeof(pokeInfo) == "undefined") {
