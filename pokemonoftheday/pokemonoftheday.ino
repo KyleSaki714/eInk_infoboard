@@ -50,6 +50,12 @@ WiFiClientSecure *client = new WiFiClientSecure;
 JSONVar pokeInfo;
 String xbmData;
 
+int width;
+int height;
+uint8_t* xbmArray;
+
+int infoscrollx = SCREEN_WIDTH;
+
 // ChatGPT function
 int parseXBMWidth(const String& xbmData) {
   int widthIndex = xbmData.indexOf("_width") + 7;
@@ -211,23 +217,58 @@ void setup() {
   Serial.println(pokeInfo["types"]);
   Serial.println(pokeInfo["weight"]);
 
-    // Extract width and height from the XBM data
-  int width = parseXBMWidth(xbmData);
-  int height = parseXBMHeight(xbmData);
-  uint8_t* xbmArray = parseXBMArray(xbmData);
+  // Extract width and height from the XBM data
+  width = parseXBMWidth(xbmData);
+  height = parseXBMHeight(xbmData);
+  xbmArray = parseXBMArray(xbmData);
 
   display.clearDisplay();
 
   display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
   display.display();
 
-  delete[] xbmArray;  // Free the allocated memory
+  display.setTextColor(WHITE, BLACK);
+  display.setTextWrap(false);
 
   Serial.println("Image displayed successfully");
-
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  display.clearDisplay();
 
+  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
+
+  display.setCursor(infoscrollx, 0);
+
+  Serial.println(pokeInfo["firstAppearance"]);
+  Serial.println(pokeInfo["height"]);
+  Serial.println(pokeInfo["id"]);
+  Serial.println(pokeInfo["name"]);
+  Serial.println(pokeInfo["types"]);
+  Serial.println(pokeInfo["weight"]);
+
+  // String poketext = pokeInfo["name"] + " #" + pokeInfo["id"] + " " + pokeInfo["firstAppearance"] + " " + pokeInfo["types"] + " " + pokeInfo["height"] + " " + pokeInfo["weight"];
+  String poketext = pokeInfo["name"];
+
+  int16_t boundx;
+  int16_t boundy;
+  uint16_t boundwidth;
+  uint16_t boundheight;
+  display.getTextBounds(poketext, infoscrollx, 0, &boundx, &boundy, &boundwidth, &boundheight);
+
+  Serial.print("boundx: ");
+  Serial.println(boundx);
+  Serial.println(boundy);
+  Serial.println(boundwidth);
+  Serial.println(boundheight);
+
+  if (boundx + boundwidth == 0) {
+    infoscrollx = SCREEN_WIDTH;
+  } else {
+    infoscrollx--;
+  }
+
+
+  display.println(pokeInfo["name"]);
+  display.display();
 }
