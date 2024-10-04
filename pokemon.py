@@ -11,6 +11,7 @@ import json
 from datetime import datetime
 
 CURR_PKMN_FILE = "currentpokemon.txt"
+FILE_POKEINFO = "pokeinfo.json"
 
 def getFirstAppearance(pokeApi_data):
 
@@ -110,56 +111,45 @@ def retrievePkmnData(id):
     return pokeInfo
 
 # generates a new id for a pokemon.
-# saves this id to disk in a file.
+# id will work with PokeAPI.
 # returns the id.
 def genPkmnId():
-    # on failure, generate a new id
-    pokemonId = rand.randint(0, 1017)
-    
-    # save id to disk
-    with open(CURR_PKMN_FILE, "w") as file:
-        file.write(str(pokemonId))
-    
-    return pokemonId
+    return rand.randint(0, 1017)
 
 app = Flask(__name__)
 
 lastKnownDay = datetime.today().date()
 
-pokemonId = 483
+pokeInfo = None
 
-# on server spin up, try to read pokeinfo from file "currentpokemon.txt"
+# on server spin up, try to read pokeinfo from file "pokeinfo.json"
 try:
     # open existing pkmn file
-    with open(CURR_PKMN_FILE, "r") as file:
-        lines = file.readlines()
-        print(lines)
-        pokemonId = lines[0]
+    with open(FILE_POKEINFO, "r") as file:
+        pokeInfo = json.load(file)
 except:
-    pokemonId = genPkmnId()
-
-# try to use the given id to get pokemon data
-try:
-    pokeInfo = retrievePkmnData(pokemonId)
-except:
-    # file might have contained junk data. generate a new pkmn id
+    # if not a successful read, generate a new pokemon and
+    # save new pokeinfo.json to disk
     pokemonId = genPkmnId()
     pokeInfo = retrievePkmnData(pokemonId)
+    
+    with open(FILE_POKEINFO, "w") as file:
+        json.dump(pokeInfo, file, indent=4)
 
 print("lastKnownDay: ", lastKnownDay)
 print("pokeInfo: ", pokeInfo)
 
 # checks if a new pokemon must be generated for a new day.
 # if so, retrieves new pokemon data from PokeAPI. else if 
-# not a new day, tries to read from a cached file.
+# not a new day, does nothing as pokeinfo.json should already be on disk.
 def checkNewDayNewPkmn():
     global lastKnownDay
     global pokeInfo
     if (datetime.today().date() > lastKnownDay):
-        # new day
-        pokeInfo = retrievePkmnData(pokemonId)
+        pokeInfo = retrievePkmnData(genPkmnId())
+        with open(FILE_POKEINFO, "w") as file:
+            json.dump(pokeInfo, file, indent=4)
         print("new day: new pokemon generated")
-        # res += "<p>new day, new pokemon generated.</p>"
     
 @app.get('/')
 def index():
