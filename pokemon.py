@@ -13,30 +13,26 @@ from datetime import datetime
 CURR_PKMN_FILE = "currentpokemon.txt"
 FILE_POKEINFO = "pokeinfo.json"
 
-def getFirstAppearance(pokeApi_data):
-
-    # if "game_indices" in pokeApi_data:
-    #     if len(pokeApi_data["game_indices"]) != 0:
-    #         # print("First Appearance: Pkmn " + pokeApi_data["game_indices"][0]["version"]["name"])
-    #         return pokeApi_data["game_indices"][0]["version"]["name"]
-    
+# using the given pokeapi data, 
+# gets the game(s) the pokemon first appeared in.
+# returns a string that describes this.
+def getFirstAppearance(pokeApi_data):    
     text = ''
     spritesVersions = pokeApi_data["sprites"]["versions"]
     for gen in spritesVersions:
         for game in spritesVersions[gen]:
             if (spritesVersions[gen][game]["front_default"] != None):
-                # pokeInfo['firstAppearance'] += "first appearance: ", gen
                 text += gen
                 text = text.replace("eration-"," ",2)
                 text += ": "
-                # print("(games: ",end="")
                 for firstAppearanceGenGame in spritesVersions[gen]:
-                    # print(firstAppearanceGenGame,", ", end="")
                     text += firstAppearanceGenGame
                     text += " "
-                # print()
                 return text
 
+# using the given pokeapi data, 
+# gets the type(s) of the pokemon.
+# returns a comma separated string of these values.
 def getTypes(pokeApi_data):
     text = ''
     types = pokeApi_data["types"]
@@ -46,19 +42,19 @@ def getTypes(pokeApi_data):
             for n in range(1, len(types)):
                 text += ", "
                 text += types[n]["type"]["name"]
-    # print(type["type"]["name"],", ",end="")
-        
     return text
 
-# Converts the height from the given API Data
-# from decimeters to feet and inches. 
+# using the given pokeapi data, 
+# Converts the height of the pokemon
+# from decimeters to feet and inches. returns this value. 
 def getHeight(pokeApi_data):
     num = pokeApi_data["height"]
     dmToFeet = 0.3280839895
     return str(round(num * dmToFeet, 2)) + " ft"
 
-# Converts the weight from the given API data
-# from hectograms to pounds
+# using the given pokeapi data, 
+# Converts the weight of this pokemon
+# from hectograms to pounds. returns this value.
 def getWeight(pokeApi_data):
     num = pokeApi_data["weight"]
     hgToPounds = 0.2204622622
@@ -66,7 +62,7 @@ def getWeight(pokeApi_data):
 
 # retrieves sprite image from pokeapi data,
 # then converts into 1-bit displayable on ssd1306 displays .
-# saves the xbm image to /
+# saves the xbm image to "sprite.xbm"
 def generateSprite(pokeApi_data):
     # get sprite from api
     urllib.request.urlretrieve(pokeApi_data["sprites"]["front_default"], "sprite.png")
@@ -82,17 +78,12 @@ def generateSprite(pokeApi_data):
     # convert image to 1 bit (b/w)
     im2 = im2.convert('1')
 
-    # export to png for debugging purposes
-    # try:
-    #     im2.save("sprite.png")
-    # except:
-    # im2.save("sprite.bmp", "BMP")
-
     # export to xbm for esp32
     im2.save("sprite.xbm", "XBM")
 
-# gathers new pokemon data using the given pokemon id, 
-# using the PokeAPI.
+# gathers new pokemon data using the 
+# given pokemon id, using the PokeAPI.
+# returns a concise dictionary of pokemon info to display.
 def retrievePkmnData(id):
         
     BASE_URL_PKMN = "https://pokeapi.co/api/v2/pokemon/{0}"
@@ -151,6 +142,8 @@ def checkNewDayNewPkmn():
             json.dump(pokeInfo, file, indent=4)
         print("new day: new pokemon generated")
     
+# root endpoint that when visited, checks if it is a new day.
+# if so, retrieves a new pokemon from PokeAPI.
 @app.get('/')
 def index():
     global lastKnownDay
@@ -162,12 +155,16 @@ def index():
     res += "<p>Please refer to the endpoints below</p><p>/pokeInfo: returns pokeInfo.json</p><p>/sprite: returns sprite.xbm</p>"
     return res
 
+# Endpoint that serves a json file of pokemon info for
+# the device to display.
 @app.get('/pokemonInfo')
 def pokemonInfo():
     checkNewDayNewPkmn()
     global pokeInfo
     return jsonify(pokeInfo)
 
+# Endpoint that serves an xbm image file for the device 
+# to read and display. 
 @app.get('/sprite')
 def sprite():
     return send_from_directory("", "sprite.xbm")
