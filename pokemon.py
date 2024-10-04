@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, redirect, jsonify, send_from_directory
 import random as rand
 import requests
 import urllib.request
@@ -73,7 +73,6 @@ def generateSprite(pokeApi_data):
 
     # resize sprite using thumbnail function size to 48x48 px, and use Bilinear resampling https://pillow.readthedocs.io/en/stable/reference/Image.html#resampling-filters
     im2 = im2.resize((64, 64), 2)
-    im2.save("sprite_resized_unedited.png")
 
     # convert image to 1 bit (b/w)
     im2 = im2.convert('1')
@@ -160,14 +159,29 @@ def index():
 @app.get('/pokemonInfo')
 def pokemonInfo():
     checkNewDayNewPkmn()
-    global pokeInfo
-    return jsonify(pokeInfo)
+    return send_from_directory("", FILE_POKEINFO)
 
 # Endpoint that serves an xbm image file for the device 
 # to read and display. 
 @app.get('/sprite')
 def sprite():
     return send_from_directory("", "sprite.xbm")
+
+# Endpoint that forces the server to generate 
+# a new pokemon for the day.
+# Redirects to endpoint '/pokemonInfo' to see the
+# new pokemon.
+@app.get('/newPokemon')
+def newPokemon():
+    global pokeinfo
+    pokemonId = genPkmnId()
+    pokeInfo = retrievePkmnData(pokemonId)
+    
+    with open(FILE_POKEINFO, "w") as file:
+        json.dump(pokeInfo, file, indent=4)
+        print("success new pkmn")
+    
+    return redirect('pokemonInfo')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)

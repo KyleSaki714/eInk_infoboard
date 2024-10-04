@@ -1,8 +1,8 @@
 {
-    "name": "volcarona",
-    "id": 637,
-    "firstAppearance": "gen v: black-white ",
-    "height": "5.25 ft",
-    "weight": "101.41 lbs",
-    "types": "bug, fire"
+    "name": "raticate",
+    "id": 20,
+    "firstAppearance": "gen i: red-blue yellow ",
+    "height": "2.3 ft",
+    "weight": "40.79 lbs",
+    "types": "normal"
 }
