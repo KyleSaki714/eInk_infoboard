@@ -6,8 +6,11 @@ from PIL import ImageOps
 from PIL import Image
 from io import BytesIO
 import io
+import os.path
 import json
 from datetime import datetime
+
+CURR_PKMN_FILE = "currentpokemon.txt"
 
 def getFirstAppearance(pokeApi_data):
 
@@ -89,9 +92,25 @@ def generateSprite(pokeApi_data):
 
 
 def generateNewPkmn():
-    # new random id
-    id = rand.randint(0, 1017)
+    id = 483
     
+    # try reading a pkmn file
+    try:
+        # open existing pkmn file
+        with open(CURR_PKMN_FILE, "r") as file:
+            lines = file.readlines()
+            print(lines)
+            id = lines[0]
+    except:
+    # check if there is not a file currentpokemon.txt that exists
+    # if not (os.path.isfile(CURR_PKMN_FILE)):
+        # new random id
+        id = rand.randint(0, 1017)
+        
+        # save id to disk
+        with open(CURR_PKMN_FILE, "w") as file:
+            file.write(str(id))
+        
     BASE_URL_PKMN = "https://pokeapi.co/api/v2/pokemon/{0}"
     final_url_pkmn = BASE_URL_PKMN.format(id)
 
