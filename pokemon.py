@@ -10,7 +10,7 @@ import os.path
 import json
 from datetime import datetime
 
-CURR_PKMN_FILE = "currentpokemon.txt"
+FILE_CURRENTDATE = "currentdate"
 FILE_POKEINFO = "pokeinfo.json"
 
 # using the given pokeapi data, 
@@ -110,6 +110,18 @@ app = Flask(__name__)
 
 lastKnownDay = datetime.today().date()
 
+# on server spin up, try to read today's date from file "currentdate"
+try:
+    with open(FILE_CURRENTDATE, "r") as file:
+        lines = file.readlines()
+        date_format = "%Y-%m-%d"
+        dateobj = datetime.strptime(lines[0], date_format)
+        lastKnownDay = dateobj.date()
+except:
+    lastKnownDay = datetime.today().date()
+    f = open("currentdate", "w")
+    d = f.write(str(lastKnownDay))
+
 pokeInfo = None
 
 # on server spin up, try to read pokeinfo from file "pokeinfo.json"
@@ -135,11 +147,16 @@ print("pokeInfo: ", pokeInfo)
 def checkNewDayNewPkmn():
     global lastKnownDay
     global pokeInfo
-    if (datetime.today().date() > lastKnownDay):
+    currentDay = datetime.today().date()
+    if (currentDay > lastKnownDay):
         pokeInfo = retrievePkmnData(genPkmnId())
         with open(FILE_POKEINFO, "w") as file:
             json.dump(pokeInfo, file, indent=4)
         print("new day: new pokemon generated")
+        lastKnownDay = currentDay
+        
+        f = open("currentdate", "w")
+        d = f.write(str(lastKnownDay))
     
 # root endpoint that when visited, checks if it is a new day.
 # if so, retrieves a new pokemon from PokeAPI.
