@@ -90,26 +90,9 @@ def generateSprite(pokeApi_data):
     # export to xbm for esp32
     im2.save("sprite.xbm", "XBM")
 
-
-def generateNewPkmn():
-    id = 483
-    
-    # try reading a pkmn file
-    try:
-        # open existing pkmn file
-        with open(CURR_PKMN_FILE, "r") as file:
-            lines = file.readlines()
-            print(lines)
-            id = lines[0]
-    except:
-    # check if there is not a file currentpokemon.txt that exists
-    # if not (os.path.isfile(CURR_PKMN_FILE)):
-        # new random id
-        id = rand.randint(0, 1017)
-        
-        # save id to disk
-        with open(CURR_PKMN_FILE, "w") as file:
-            file.write(str(id))
+# gathers new pokemon data using the given pokemon id, 
+# using the PokeAPI.
+def retrievePkmnData(id):
         
     BASE_URL_PKMN = "https://pokeapi.co/api/v2/pokemon/{0}"
     final_url_pkmn = BASE_URL_PKMN.format(id)
@@ -126,26 +109,57 @@ def generateNewPkmn():
     generateSprite(pokeApi_data)
     return pokeInfo
 
+# generates a new id for a pokemon.
+# saves this id to disk in a file.
+# returns the id.
+def genPkmnId():
+    # on failure, generate a new id
+    pokemonId = rand.randint(0, 1017)
+    
+    # save id to disk
+    with open(CURR_PKMN_FILE, "w") as file:
+        file.write(str(pokemonId))
+    
+    return pokemonId
 
 app = Flask(__name__)
 
 lastKnownDay = datetime.today().date()
-pokeInfo = generateNewPkmn()
 
-print(lastKnownDay)
-print(pokeInfo)
+pokemonId = 483
+
+# on server spin up, try to read pokeinfo from file "currentpokemon.txt"
+try:
+    # open existing pkmn file
+    with open(CURR_PKMN_FILE, "r") as file:
+        lines = file.readlines()
+        print(lines)
+        pokemonId = lines[0]
+except:
+    pokemonId = genPkmnId()
+
+# try to use the given id to get pokemon data
+try:
+    pokeInfo = retrievePkmnData(pokemonId)
+except:
+    # file might have contained junk data. generate a new pkmn id
+    pokemonId = genPkmnId()
+    pokeInfo = retrievePkmnData(pokemonId)
+
+print("lastKnownDay: ", lastKnownDay)
+print("pokeInfo: ", pokeInfo)
 
 # checks if a new pokemon must be generated for a new day.
-# if so, retrieves new pokemon data from PokeAPI.
+# if so, retrieves new pokemon data from PokeAPI. else if 
+# not a new day, tries to read from a cached file.
 def checkNewDayNewPkmn():
     global lastKnownDay
     global pokeInfo
     if (datetime.today().date() > lastKnownDay):
         # new day
-        pokeInfo = generateNewPkmn()
+        pokeInfo = retrievePkmnData(pokemonId)
         print("new day: new pokemon generated")
         # res += "<p>new day, new pokemon generated.</p>"
-    # print("new pkmn not generated")
     
 @app.get('/')
 def index():
