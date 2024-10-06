@@ -17,36 +17,36 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define SCREEN_WIDTH 128  // OLED display width, in pixels
+#define SCREEN_HEIGHT 64  // OLED display height, in pixels
 
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3D ///< See datasheet for Address; 0x3D for 128x64,0x3C for 128x32
+#define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3D  ///< See datasheet for Address; 0x3D for 128x64,0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-const char* ssid = "spl-public";
+const char* ssid = "Beniah25";
 const char* password = "shaqattack34!";
 
 const char* server = "https://eink-infoboard.onrender.com";
 const char* server_pkmnInfo = "https://eink-infoboard.onrender.com/pokemonInfo";
 const char* server_sprite = "https://eink-infoboard.onrender.com/sprite";
 
-const char* root_ca = \
-"-----BEGIN CERTIFICATE-----\n" \
-"MIICCjCCAZGgAwIBAgIQbkepyIuUtui7OyrYorLBmTAKBggqhkjOPQQDAzBHMQsw\n" \
-"CQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzEU\n" \
-"MBIGA1UEAxMLR1RTIFJvb3QgUjQwHhcNMTYwNjIyMDAwMDAwWhcNMzYwNjIyMDAw\n" \
-"MDAwWjBHMQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZp\n" \
-"Y2VzIExMQzEUMBIGA1UEAxMLR1RTIFJvb3QgUjQwdjAQBgcqhkjOPQIBBgUrgQQA\n" \
-"IgNiAATzdHOnaItgrkO4NcWBMHtLSZ37wWHO5t5GvWvVYRg1rkDdc/eJkTBa6zzu\n" \
-"hXyiQHY7qca4R9gq55KRanPpsXI5nymfopjTX15YhmUPoYRlBtHci8nHc8iMai/l\n" \
-"xKvRHYqjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud\n" \
-"DgQWBBSATNbrdP9JNqPV2Py1PsVq8JQdjDAKBggqhkjOPQQDAwNnADBkAjBqUFJ0\n" \
-"CMRw3J5QdCHojXohw0+WbhXRIjVhLfoIN+4Zba3bssx9BzT1YBkstTTZbyACMANx\n" \
-"sbqjYAuG7ZoIapVon+Kz4ZNkfF6Tpt95LY2F45TPI11xzPKwTdb+mciUqXWi4w==\n" \
-"-----END CERTIFICATE-----\n";
+const char* root_ca =
+  "-----BEGIN CERTIFICATE-----\n"
+  "MIICCjCCAZGgAwIBAgIQbkepyIuUtui7OyrYorLBmTAKBggqhkjOPQQDAzBHMQsw\n"
+  "CQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZpY2VzIExMQzEU\n"
+  "MBIGA1UEAxMLR1RTIFJvb3QgUjQwHhcNMTYwNjIyMDAwMDAwWhcNMzYwNjIyMDAw\n"
+  "MDAwWjBHMQswCQYDVQQGEwJVUzEiMCAGA1UEChMZR29vZ2xlIFRydXN0IFNlcnZp\n"
+  "Y2VzIExMQzEUMBIGA1UEAxMLR1RTIFJvb3QgUjQwdjAQBgcqhkjOPQIBBgUrgQQA\n"
+  "IgNiAATzdHOnaItgrkO4NcWBMHtLSZ37wWHO5t5GvWvVYRg1rkDdc/eJkTBa6zzu\n"
+  "hXyiQHY7qca4R9gq55KRanPpsXI5nymfopjTX15YhmUPoYRlBtHci8nHc8iMai/l\n"
+  "xKvRHYqjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud\n"
+  "DgQWBBSATNbrdP9JNqPV2Py1PsVq8JQdjDAKBggqhkjOPQQDAwNnADBkAjBqUFJ0\n"
+  "CMRw3J5QdCHojXohw0+WbhXRIjVhLfoIN+4Zba3bssx9BzT1YBkstTTZbyACMANx\n"
+  "sbqjYAuG7ZoIapVon+Kz4ZNkfF6Tpt95LY2F45TPI11xzPKwTdb+mciUqXWi4w==\n"
+  "-----END CERTIFICATE-----\n";
 
-WiFiClientSecure *client = new WiFiClientSecure;
+WiFiClientSecure* client = new WiFiClientSecure;
 JSONVar pokeInfo;
 String xbmData;
 
@@ -55,6 +55,7 @@ int height;
 uint8_t* xbmArray;
 
 int infoscrollx = SCREEN_WIDTH;
+const int infoFadeDelay = 2500;
 
 // ChatGPT function
 int parseXBMWidth(const String& xbmData) {
@@ -73,23 +74,23 @@ uint8_t* parseXBMArray(const String& xbmData) {
   int dataStart = xbmData.indexOf("{") + 1;
   int dataEnd = xbmData.indexOf("}");
   String bitmapData = xbmData.substring(dataStart, dataEnd);
-  
+
   // Count the number of hex bytes in the array
   int byteCount = 0;
   for (int i = 0; i < bitmapData.length(); i++) {
-    if (bitmapData[i] == '0' && bitmapData[i+1] == 'x') {
+    if (bitmapData[i] == '0' && bitmapData[i + 1] == 'x') {
       byteCount++;
     }
   }
 
   // Allocate memory for the array
   uint8_t* xbmArray = new uint8_t[byteCount];
-  
+
   // Parse the hex bytes and fill the array
   int arrayIndex = 0;
   for (int i = 0; i < bitmapData.length(); i++) {
-    if (bitmapData[i] == '0' && bitmapData[i+1] == 'x') {
-      xbmArray[arrayIndex++] = strtoul(bitmapData.substring(i+2, i+4).c_str(), NULL, 16);
+    if (bitmapData[i] == '0' && bitmapData[i + 1] == 'x') {
+      xbmArray[arrayIndex++] = strtoul(bitmapData.substring(i + 2, i + 4).c_str(), NULL, 16);
     }
   }
 
@@ -104,12 +105,12 @@ void retrievePokemonInfo(HTTPClient* https, WiFiClientSecure* client, JSONVar* p
 
     // start connection and send HTTP header
     int httpCode = https->GET();
-    
+
     // httpCode will be negative on error
     if (httpCode > 0) {
-    // HTTP header has been send and Server response header has been handled
+      // HTTP header has been send and Server response header has been handled
       Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
-    // file found at server
+      // file found at server
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         // print server response payload
         String content = https->getString();
@@ -118,8 +119,7 @@ void retrievePokemonInfo(HTTPClient* https, WiFiClientSecure* client, JSONVar* p
         //Parse JSON
         *pokeInfo = JSON.parse(content);
       }
-    }
-    else {
+    } else {
       Serial.printf("[HTTPS] GET... failed, error: %s\n", https->errorToString(httpCode).c_str());
     }
     https->end();
@@ -135,18 +135,17 @@ void retrievePokemonSprite(HTTPClient* https, WiFiClientSecure* client, String* 
 
     // start connection and send HTTP header
     int httpCode = https->GET();
-    
+
     // httpCode will be negative on error
     if (httpCode > 0) {
-    // HTTP header has been send and Server response header has been handled
+      // HTTP header has been send and Server response header has been handled
       Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
-    // file found at server
+      // file found at server
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         *xbmData = https->getString();
         Serial.println("Downloaded sprite XBM data");
       }
-    }
-    else {
+    } else {
       Serial.printf("[HTTPS] GET... failed, error: %s\n", https->errorToString(httpCode).c_str());
     }
     https->end();
@@ -156,7 +155,7 @@ void retrievePokemonSprite(HTTPClient* https, WiFiClientSecure* client, String* 
 }
 
 void retrieveData(WiFiClientSecure* client, JSONVar* pokeInfo, String* xbmData) {
-  if(client) {
+  if (client) {
     // set secure client with certificate
     // client->setCACert(root_ca);
     client->setInsecure();
@@ -167,8 +166,7 @@ void retrieveData(WiFiClientSecure* client, JSONVar* pokeInfo, String* xbmData) 
 
     retrievePokemonSprite(&https, client, xbmData);
 
-  }
-  else {
+  } else {
     Serial.printf("[HTTPS] Unable to connect\n");
   }
 
@@ -182,18 +180,19 @@ void setup() {
   delay(100);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    for (;;)
+      ;  // Don't proceed, loop forever
   }
 
   // Clear the buffer
   display.clearDisplay();
   display.display();
 
-  WiFi.begin(ssid, NULL);
+  WiFi.begin(ssid, password);
   Serial.println("Connecting");
-  while(WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(1000);
   }
@@ -228,47 +227,66 @@ void setup() {
   display.display();
 
   display.setTextColor(WHITE, BLACK);
-  display.setTextWrap(false);
+  display.setTextWrap(true);
 
   Serial.println("Image displayed successfully");
 }
 
 void loop() {
   display.clearDisplay();
-
   display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
-
-  display.setCursor(infoscrollx, 0);
-
-  Serial.println(pokeInfo["firstAppearance"]);
-  Serial.println(pokeInfo["height"]);
-  Serial.println(pokeInfo["id"]);
-  Serial.println(pokeInfo["name"]);
-  Serial.println(pokeInfo["types"]);
-  Serial.println(pokeInfo["weight"]);
-
-  // String poketext = pokeInfo["name"] + " #" + pokeInfo["id"] + " " + pokeInfo["firstAppearance"] + " " + pokeInfo["types"] + " " + pokeInfo["height"] + " " + pokeInfo["weight"];
-  String poketext = pokeInfo["name"];
-
-  int16_t boundx;
-  int16_t boundy;
-  uint16_t boundwidth;
-  uint16_t boundheight;
-  display.getTextBounds(poketext, infoscrollx, 0, &boundx, &boundy, &boundwidth, &boundheight);
-
-  Serial.print("boundx: ");
-  Serial.println(boundx);
-  Serial.println(boundy);
-  Serial.println(boundwidth);
-  Serial.println(boundheight);
-
-  if (boundx + boundwidth == 0) {
-    infoscrollx = SCREEN_WIDTH;
-  } else {
-    infoscrollx--;
-  }
-
-
-  display.println(pokeInfo["name"]);
+  display.setCursor(0, 0);
+  String pokeText = pokeInfo["name"];
+  pokeText.replace("\"", "");
+  display.println(pokeText);
   display.display();
+  delay(infoFadeDelay);
+
+  display.clearDisplay();
+  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
+  display.setCursor(0, 0);
+  display.print("#");
+  display.println(pokeInfo["id"]);
+  display.display();
+  delay(infoFadeDelay);
+
+  display.clearDisplay();
+  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
+  display.setCursor(0, 0);
+  display.print("types: ");
+  String pokeText2 = pokeInfo["types"];
+  pokeText.replace("\"", "");
+  display.println(pokeText2);
+  display.display();
+  delay(infoFadeDelay);
+
+  display.clearDisplay();
+  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
+  display.setCursor(0, 0);
+  display.print("first appearance: ");
+  String pokeText3 = pokeInfo["firstAppearance"];
+  pokeText.replace("\"", "");
+  display.println(pokeText3);
+  display.display();
+  delay(infoFadeDelay);
+
+  display.clearDisplay();
+  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
+  display.setCursor(0, 0);
+  display.print("height: ");
+  String pokeText4 = pokeInfo["height"];
+  pokeText.replace("\"", "");
+  display.println(pokeText4);
+  display.display();
+  delay(infoFadeDelay);
+
+  display.clearDisplay();
+  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
+  display.setCursor(0, 0);
+  display.print("weight: ");
+  String pokeText5 = pokeInfo["weight"];
+  pokeText.replace("\"", "");
+  display.println(pokeText5);
+  display.display();
+  delay(infoFadeDelay);
 }
