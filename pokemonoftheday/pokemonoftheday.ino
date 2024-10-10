@@ -11,7 +11,7 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
-#include <Arduino_JSON.h>
+#include <ArduinoJson.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -24,8 +24,10 @@
 #define SCREEN_ADDRESS 0x3D  ///< See datasheet for Address; 0x3D for 128x64,0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-const char* ssid = "Beniah25";
-const char* password = "shaqattack34!";
+// const char* ssid = "spl-public";
+const char* ssid = "Samsung Galaxy Note9_0270";
+// const char* password = "shaqattack34!";
+const char* password = "02927731";
 
 const char* server = "https://eink-infoboard.onrender.com";
 const char* server_pkmnInfo = "https://eink-infoboard.onrender.com/pokemonInfo";
@@ -47,7 +49,7 @@ const char* root_ca =
   "-----END CERTIFICATE-----\n";
 
 WiFiClientSecure* client = new WiFiClientSecure;
-JSONVar pokeInfo;
+JsonDocument pokeInfo;
 String xbmData;
 
 int width;
@@ -97,7 +99,7 @@ uint8_t* parseXBMArray(const String& xbmData) {
   return xbmArray;
 }
 
-void retrievePokemonInfo(HTTPClient* https, WiFiClientSecure* client, JSONVar* pokeInfo) {
+void retrievePokemonInfo(HTTPClient* https, WiFiClientSecure* client, JsonDocument* pokeInfo) {
   //Initializing an HTTPS communication using the secure client
   Serial.print("[HTTPS] begin...\n");
   if (https->begin(*client, server_pkmnInfo)) {  // HTTPS
@@ -116,8 +118,15 @@ void retrievePokemonInfo(HTTPClient* https, WiFiClientSecure* client, JSONVar* p
         String content = https->getString();
         Serial.print("Content: ");
         Serial.println(content);
+
+        JsonDocument doc;
+
+        deserializeJson(doc, content);
+        // deserializeJson(doc, Serial);
+
         //Parse JSON
-        *pokeInfo = JSON.parse(content);
+        // *pokeInfo = JSON.parse(content);
+        *pokeInfo = doc;
       }
     } else {
       Serial.printf("[HTTPS] GET... failed, error: %s\n", https->errorToString(httpCode).c_str());
@@ -154,7 +163,7 @@ void retrievePokemonSprite(HTTPClient* https, WiFiClientSecure* client, String* 
   }
 }
 
-void retrieveData(WiFiClientSecure* client, JSONVar* pokeInfo, String* xbmData) {
+void retrieveData(WiFiClientSecure* client, JsonDocument* pokeInfo, String* xbmData) {
   if (client) {
     // set secure client with certificate
     // client->setCACert(root_ca);
@@ -203,18 +212,20 @@ void setup() {
   retrieveData(client, &pokeInfo, &xbmData);
 
   // check json
-  if (JSON.typeof(pokeInfo) == "undefined") {
-    Serial.println("Parsing content json failed");
-    return;
-  }
+  // if (JSON.typeof(pokeInfo) == "undefined") {
+  //   Serial.println("Parsing content json failed");
+  //   return;
+  // }
 
   // print JSON
-  Serial.println(pokeInfo["firstAppearance"]);
-  Serial.println(pokeInfo["height"]);
-  Serial.println(pokeInfo["id"]);
-  Serial.println(pokeInfo["name"]);
-  Serial.println(pokeInfo["types"]);
-  Serial.println(pokeInfo["weight"]);
+  // Serial.println(pokeInfo["firstAppearance"]);
+  // Serial.println(pokeInfo["height"]);
+  // Serial.println(pokeInfo["id"]);
+  // Serial.println(pokeInfo["name"]);
+  // Serial.println(pokeInfo["types"]);
+  // Serial.println(pokeInfo["weight"]);
+
+  Serial.println(xbmData);
 
   // Extract width and height from the XBM data
   width = parseXBMWidth(xbmData);
@@ -246,7 +257,7 @@ void loop() {
   display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
   display.setCursor(0, 0);
   display.print("#");
-  display.println(pokeInfo["id"]);
+  display.println((int) pokeInfo["id"]);
   display.display();
   delay(infoFadeDelay);
 
