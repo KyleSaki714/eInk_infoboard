@@ -116,16 +116,12 @@ void retrievePokemonInfo(HTTPClient* https, WiFiClientSecure* client, JsonDocume
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         // print server response payload
         String content = https->getString();
-        Serial.print("Content: ");
+        Serial.print("pokeInfo: ");
         Serial.println(content);
 
         JsonDocument doc;
-
         deserializeJson(doc, content);
-        // deserializeJson(doc, Serial);
 
-        //Parse JSON
-        // *pokeInfo = JSON.parse(content);
         *pokeInfo = doc;
       }
     } else {
@@ -211,21 +207,11 @@ void setup() {
 
   retrieveData(client, &pokeInfo, &xbmData);
 
-  // check json
+  // TODO: check json is valid
   // if (JSON.typeof(pokeInfo) == "undefined") {
   //   Serial.println("Parsing content json failed");
   //   return;
   // }
-
-  // print JSON
-  // Serial.println(pokeInfo["firstAppearance"]);
-  // Serial.println(pokeInfo["height"]);
-  // Serial.println(pokeInfo["id"]);
-  // Serial.println(pokeInfo["name"]);
-  // Serial.println(pokeInfo["types"]);
-  // Serial.println(pokeInfo["weight"]);
-
-  Serial.println(xbmData);
 
   // Extract width and height from the XBM data
   width = parseXBMWidth(xbmData);
