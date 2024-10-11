@@ -8,14 +8,16 @@
 // https://randomnerdtutorials.com/esp32-http-get-post-arduino/#http-get-2
 // 10-1-24
 
-#include <WiFi.h>
-#include <WiFiClientSecure.h>
-#include <HTTPClient.h>
-#include <ArduinoJson.h>
-#include <SPI.h>
-#include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <ArduinoJson.h>
+#include <HTTPClient.h>
+#include <SPI.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <Wire.h>
+#include "FS.h"
+#include "SPIFFS.h"
 
 #define SCREEN_WIDTH 128  // OLED display width, in pixels
 #define SCREEN_HEIGHT 64  // OLED display height, in pixels
@@ -23,6 +25,10 @@
 #define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3D  ///< See datasheet for Address; 0x3D for 128x64,0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+#define FORMAT_SPIFFS_IF_FAILED true
+#define FILENAME_POKEINFO "/pokeInfo.json"
+#define FILENAME_SPRITE "/sprite.xbm"
 
 // const char* ssid = "spl-public";
 const char* ssid = "Samsung Galaxy Note9_0270";
@@ -180,6 +186,22 @@ void retrieveData(WiFiClientSecure* client, JsonDocument* pokeInfo, String* xbmD
   delete client;
 }
 
+void listAllFiles(){
+ 
+  File root = SPIFFS.open("/");
+ 
+  File file = root.openNextFile();
+ 
+  while(file){
+ 
+      Serial.print("FILE: ");
+      Serial.println(file.name());
+ 
+      file = root.openNextFile();
+  }
+ 
+}
+
 void setup() {
   Serial.begin(115200);
   delay(100);
@@ -190,6 +212,38 @@ void setup() {
     for (;;)
       ;  // Don't proceed, loop forever
   }
+
+  // initialize SPIFFS
+  if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)) {
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
+
+  listAllFiles();
+
+  if (SPIFFS.exists(FILENAME_POKEINFO)) {
+    File pFile = SPIFFS.open(FILENAME_POKEINFO, FILE_READ);
+    if (!pFile) {
+      Serial.println("fail to open file");
+      return;
+    }
+    DeserializationError error = deserializeJson(pokeInfo, pFile);
+    if (error) {
+      Serial.print("deserializeJson() failed: ");
+      Serial.println(error.f_str());
+      pFile.close();
+      return;
+    }
+    pFile.close();
+  }
+
+  Serial.println(pokeInfo["firstAppearance"].as<String>());
+  Serial.println(pokeInfo["height"].as<String>());
+  Serial.println(pokeInfo["id"].as<int>());
+  Serial.println(pokeInfo["name"].as<String>());
+  Serial.println(pokeInfo["types"].as<String>());
+  Serial.println(pokeInfo["weight"].as<String>());
+  return;
 
   // Clear the buffer
   display.clearDisplay();
@@ -212,6 +266,22 @@ void setup() {
   //   Serial.println("Parsing content json failed");
   //   return;
   // }
+
+  // cache pokeInfo
+  if (!SPIFFS.exists(FILENAME_POKEINFO)) {
+    Serial.println("pokeInfo.json does not exist, creating file...");
+    File createFile = SPIFFS.open(FILENAME_POKEINFO, FILE_WRITE);
+    if (!createFile) {
+      Serial.println("Failed to create file");
+      return;
+    }
+
+    serializeJson(pokeInfo, createFile);
+    createFile.close();
+  }
+
+
+  // cache xbm 
 
   // Extract width and height from the XBM data
   width = parseXBMWidth(xbmData);

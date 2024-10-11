@@ -6,21 +6,21 @@
 #define FORMAT_SPIFFS_IF_FAILED true
 #define FILENAME "/walterwhite.json"
 
-void listAllFiles(){
- 
-  File root = SPIFFS.open("/");
- 
-  File file = root.openNextFile();
- 
-  while(file){
- 
-      Serial.print("FILE: ");
-      Serial.println(file.name());
- 
-      file = root.openNextFile();
+  void listAllFiles(){
+  
+    File root = SPIFFS.open("/");
+  
+    File file = root.openNextFile();
+  
+    while(file){
+  
+        Serial.print("FILE: ");
+        Serial.println(file.name());
+  
+        file = root.openNextFile();
+    }
+  
   }
- 
-}
 
 void setup() {
   Serial.begin(9600);
