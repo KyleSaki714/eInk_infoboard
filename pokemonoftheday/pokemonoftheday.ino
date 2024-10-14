@@ -28,10 +28,11 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #define FORMAT_SPIFFS_IF_FAILED true
 #define FILENAME_POKEINFO "/pokeInfo.json"
-#define FILENAME_SPRITE "/sprite.xbm"
+#define FILENAME_SPRITE "/sprite.txt"
 
 // const char* ssid = "spl-public";
 const char* ssid = "Samsung Galaxy Note9_0270";
+// const char* ssid = "University of Washington";
 // const char* password = "shaqattack34!";
 const char* password = "02927731";
 
@@ -234,32 +235,43 @@ void setup() {
       pFile.close();
       return;
     }
+    Serial.println("read in cached pokeInfo.json file.");
     pFile.close();
   }
 
-  Serial.println(pokeInfo["firstAppearance"].as<String>());
-  Serial.println(pokeInfo["height"].as<String>());
-  Serial.println(pokeInfo["id"].as<int>());
-  Serial.println(pokeInfo["name"].as<String>());
-  Serial.println(pokeInfo["types"].as<String>());
-  Serial.println(pokeInfo["weight"].as<String>());
-  return;
+  if (SPIFFS.exists(FILENAME_SPRITE)) {
+    File xFile = SPIFFS.open(FILENAME_SPRITE, FILE_READ);
+    if (!xFile) {
+      Serial.println("fail to open file");
+      return;
+    }
+    size_t xFileLen = xFile.available();
+    uint8_t xFileBuf[xFileLen];
+    xFile.read(xFileBuf, xFileLen);
+    // xbmData = (String) xFile.read();
+    xbmData = (char*) xFileBuf;
+        // Serial.write(xFile.read());
+    
+    Serial.println("read in cached xbm file.");
+    // delete[] xFileBuf;
+    xFile.close();
+  }
 
   // Clear the buffer
   display.clearDisplay();
   display.display();
 
-  WiFi.begin(ssid, password);
-  Serial.println("Connecting");
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(1000);
-  }
-  Serial.println("");
-  Serial.print("Connected to network with IP Address: ");
-  Serial.println(WiFi.localIP());
+  // WiFi.begin(ssid, password);
+  // Serial.println("Connecting");
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   Serial.print(".");
+  //   delay(1000);
+  // }
+  // Serial.println("");
+  // Serial.print("Connected to network with IP Address: ");
+  // Serial.println(WiFi.localIP());
 
-  retrieveData(client, &pokeInfo, &xbmData);
+  // retrieveData(client, &pokeInfo, &xbmData);
 
   // TODO: check json is valid
   // if (JSON.typeof(pokeInfo) == "undefined") {
@@ -268,20 +280,45 @@ void setup() {
   // }
 
   // cache pokeInfo
-  if (!SPIFFS.exists(FILENAME_POKEINFO)) {
-    Serial.println("pokeInfo.json does not exist, creating file...");
-    File createFile = SPIFFS.open(FILENAME_POKEINFO, FILE_WRITE);
-    if (!createFile) {
-      Serial.println("Failed to create file");
-      return;
-    }
+  // if (!SPIFFS.exists(FILENAME_POKEINFO)) {
+    // Serial.println("pokeInfo.json does not exist, creating file...");
+    // File createPokeInfoFile = SPIFFS.open(FILENAME_POKEINFO, FILE_WRITE);
+    // if (!createPokeInfoFile) {
+    //   Serial.println("Failed to create file");
+    //   return;
+    // }
 
-    serializeJson(pokeInfo, createFile);
-    createFile.close();
-  }
+    // serializeJson(pokeInfo, createPokeInfoFile);
+    // createPokeInfoFile.close();
+  // }
 
+  Serial.print("xbmData: ");
+  Serial.println(xbmData);
 
   // cache xbm 
+  // if (!SPIFFS.exists(FILENAME_SPRITE)) {
+    // Serial.println("sprite.xbm does not exist, creating file...");
+    // File createXbmFile = SPIFFS.open(FILENAME_SPRITE, FILE_WRITE);
+    // if (!createXbmFile) {
+    //   Serial.println("Failed to create file");
+    //   return;
+    // }
+
+    // if(createXbmFile.println(xbmData)){
+    //   Serial.println("xbm file written");
+    // } else {
+    //   Serial.println("xbm write failed");
+    // }
+
+    // createXbmFile.close();
+  // }
+
+  Serial.println(pokeInfo["firstAppearance"].as<String>());
+  Serial.println(pokeInfo["height"].as<String>());
+  Serial.println(pokeInfo["id"].as<int>());
+  Serial.println(pokeInfo["name"].as<String>());
+  Serial.println(pokeInfo["types"].as<String>());
+  Serial.println(pokeInfo["weight"].as<String>());
 
   // Extract width and height from the XBM data
   width = parseXBMWidth(xbmData);

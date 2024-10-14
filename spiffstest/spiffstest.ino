@@ -30,47 +30,75 @@ void setup() {
     return;
   }
 
-  SPIFFS.remove("/pkmndata.json");
-  SPIFFS.remove("/test.json");
-
   listAllFiles();
 
-  if (!SPIFFS.exists(FILENAME)) {
+  // if (!SPIFFS.exists(FILENAME)) {
+  //   Serial.println("File does not exist, creating file...");
+  //   File createFile = SPIFFS.open(FILENAME, FILE_WRITE);
+  //   if (!createFile) {
+  //     Serial.println("Failed to create file");
+  //     return;
+  //   }
+
+  //   JsonDocument createJson;
+  //   createJson["hello"] = "world";
+  //   createJson["breakingbad"] = "what if walter white found jesus?";
+
+  //   serializeJson(createJson, createFile);
+
+  //   createFile.close();
+  // }
+  
+  // JsonDocument doc;
+
+  // File file = SPIFFS.open(FILENAME, FILE_READ);
+  // if (!file)
+  // {
+  //   Serial.println("fail to open file");
+  //   return;
+  // }
+  // DeserializationError error = deserializeJson(doc, file);
+  // if (error) {
+  //   Serial.print("deserializeJson() failed: ");
+  //   Serial.println(error.f_str());
+  //   file.close();
+  //   return;
+  // }
+  // file.close();
+
+  if (!SPIFFS.exists("/test.txt")) {
     Serial.println("File does not exist, creating file...");
-    File createFile = SPIFFS.open(FILENAME, FILE_WRITE);
+    File createFile = SPIFFS.open("/test.txt", FILE_WRITE);
     if (!createFile) {
       Serial.println("Failed to create file");
       return;
     }
 
-    JsonDocument createJson;
-    createJson["hello"] = "world";
-    createJson["breakingbad"] = "what if walter white found jesus?";
 
-    serializeJson(createJson, createFile);
-
+    if(createFile.println("walter white")){
+      Serial.println("xbm file written");
+    } else {
+      Serial.println("xbm write failed");
+    }
+    
     createFile.close();
   }
-  
-  JsonDocument doc;
 
-  File file = SPIFFS.open(FILENAME, FILE_READ);
-  if (!file)
+  File readTest = SPIFFS.open("/sprite.txt", FILE_READ);
+  if (!readTest)
   {
     Serial.println("fail to open file");
     return;
   }
-  DeserializationError error = deserializeJson(doc, file);
-  if (error) {
-    Serial.print("deserializeJson() failed: ");
-    Serial.println(error.f_str());
-    file.close();
-    return;
-  }
-  file.close();
+  uint8_t buf[20];
+  int rlen = readTest.available();
+  // char ch = readTest.read();    // read the first character
+  readTest.read(buf, rlen); // read the remaining to buffer
+  String str((char*) buf);
+  Serial.println(str);
 
-  String wwhite = doc["breakingbad"].as<String>();
-  Serial.println(wwhite);
+  // String wwhite = doc["breakingbad"].as<String>();
+  // Serial.println(wwhite);
 
 
   // DynamicJsonDocument doc(4096);
