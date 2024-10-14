@@ -93,10 +93,11 @@ def retrievePkmnData(id):
     pokeInfo = dict()
     pokeInfo['name'] = pokeApi_data["name"]
     pokeInfo['id'] = pokeApi_data["id"]
-    pokeInfo['firstAppearance'] = getFirstAppearance(pokeApi_data);
+    pokeInfo['firstAppearance'] = getFirstAppearance(pokeApi_data)
     pokeInfo['height'] = getHeight(pokeApi_data)
     pokeInfo['weight'] = getWeight(pokeApi_data)
     pokeInfo['types'] = getTypes(pokeApi_data)
+    pokeInfo['timestamp'] = int(datetime.now().timestamp())
     generateSprite(pokeApi_data)
     return pokeInfo
 

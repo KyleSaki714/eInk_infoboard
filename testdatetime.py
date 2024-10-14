@@ -20,6 +20,9 @@ import json
 # f = open("currentdate.txt", "w")
 # d = f.write("todaydfasfds")
 
-file = open("currentdate", "r")
-data = file.readlines()
-print(data[0])
+# file = open("currentdate", "r")
+# data = file.readlines()
+# print(data[0])
+
+
+print(datetime.now().timestamp())
