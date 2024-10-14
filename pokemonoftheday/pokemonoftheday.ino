@@ -13,6 +13,7 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <SPI.h>
+#include <TimeLib.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <Wire.h>
@@ -29,6 +30,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 #define FORMAT_SPIFFS_IF_FAILED true
 #define FILENAME_POKEINFO "/pokeInfo.json"
 #define FILENAME_SPRITE "/sprite.txt"
+#define DAY_SECONDS 86400
 
 // const char* ssid = "spl-public";
 const char* ssid = "Samsung Galaxy Note9_0270";
@@ -222,6 +224,8 @@ void setup() {
 
   listAllFiles();
 
+  // check if cached pokeInfo.json and sprite.txt are available
+
   if (SPIFFS.exists(FILENAME_POKEINFO)) {
     File pFile = SPIFFS.open(FILENAME_POKEINFO, FILE_READ);
     if (!pFile) {
@@ -235,7 +239,7 @@ void setup() {
       pFile.close();
       return;
     }
-    Serial.println("read in cached pokeInfo.json file.");
+    Serial.println("read in cached pokeInfo.json file:");
     pFile.close();
   }
 
@@ -261,17 +265,23 @@ void setup() {
   display.clearDisplay();
   display.display();
 
-  // WiFi.begin(ssid, password);
-  // Serial.println("Connecting");
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   Serial.print(".");
-  //   delay(1000);
-  // }
-  // Serial.println("");
-  // Serial.print("Connected to network with IP Address: ");
-  // Serial.println(WiFi.localIP());
+  // TODO: display cached pokemonInfo and image
 
-  // retrieveData(client, &pokeInfo, &xbmData);
+  // try to connect to wifi
+
+  WiFi.begin(ssid, password);
+  Serial.println("Connecting");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(1000);
+  }
+  Serial.println("");
+  Serial.print("Connected to network with IP Address: ");
+  Serial.println(WiFi.localIP());
+
+  JsonDocument newPokeInfo;
+  String newXbmData;
+  retrieveData(client, &newPokeInfo, &newXbmData);
 
   // TODO: check json is valid
   // if (JSON.typeof(pokeInfo) == "undefined") {
@@ -279,39 +289,53 @@ void setup() {
   //   return;
   // }
 
+  // using the timestamp, check if it's a new day
+  time_t newTime = newPokeInfo["timestamp"].as<long>();
+  time_t oldTime = pokeInfo["timestamp"].as<long>();
+  if (newTime - oldTime > DAY_SECONDS) {
+    Serial.println("1 day passed since last pokemon info retrieval, getting new pkmn..");
+    // delete &pokeInfo;
+    // delete &xbmData;
+    pokeInfo = newPokeInfo;
+    xbmData = newXbmData;
+
   // cache pokeInfo
   // if (!SPIFFS.exists(FILENAME_POKEINFO)) {
-    // Serial.println("pokeInfo.json does not exist, creating file...");
-    // File createPokeInfoFile = SPIFFS.open(FILENAME_POKEINFO, FILE_WRITE);
-    // if (!createPokeInfoFile) {
-    //   Serial.println("Failed to create file");
-    //   return;
-    // }
+    Serial.println("pokeInfo.json does not exist, creating file...");
+    File createPokeInfoFile = SPIFFS.open(FILENAME_POKEINFO, FILE_WRITE);
+    if (!createPokeInfoFile) {
+      Serial.println("Failed to create file");
+      return;
+    }
 
-    // serializeJson(pokeInfo, createPokeInfoFile);
-    // createPokeInfoFile.close();
+    serializeJson(pokeInfo, createPokeInfoFile);
+    createPokeInfoFile.close();
   // }
 
-  Serial.print("xbmData: ");
-  Serial.println(xbmData);
+  // Serial.print("xbmData: ");
+  // Serial.println(xbmData);
 
   // cache xbm 
   // if (!SPIFFS.exists(FILENAME_SPRITE)) {
-    // Serial.println("sprite.xbm does not exist, creating file...");
-    // File createXbmFile = SPIFFS.open(FILENAME_SPRITE, FILE_WRITE);
-    // if (!createXbmFile) {
-    //   Serial.println("Failed to create file");
-    //   return;
-    // }
+    Serial.println("sprite.xbm does not exist, creating file...");
+    File createXbmFile = SPIFFS.open(FILENAME_SPRITE, FILE_WRITE);
+    if (!createXbmFile) {
+      Serial.println("Failed to create file");
+      return;
+    }
 
-    // if(createXbmFile.println(xbmData)){
-    //   Serial.println("xbm file written");
-    // } else {
-    //   Serial.println("xbm write failed");
-    // }
+    if(createXbmFile.println(xbmData)){
+      Serial.println("xbm file written");
+    } else {
+      Serial.println("xbm write failed");
+    }
 
-    // createXbmFile.close();
+    createXbmFile.close();
   // }
+  } else {
+    Serial.println("could not connect to server, or it's been less than 24 hours since your last pokemon. using cached pokemon info.");
+  }
+
 
   Serial.println(pokeInfo["firstAppearance"].as<String>());
   Serial.println(pokeInfo["height"].as<String>());
@@ -319,6 +343,7 @@ void setup() {
   Serial.println(pokeInfo["name"].as<String>());
   Serial.println(pokeInfo["types"].as<String>());
   Serial.println(pokeInfo["weight"].as<String>());
+  Serial.println(pokeInfo["timestamp"].as<int>());
 
   // Extract width and height from the XBM data
   width = parseXBMWidth(xbmData);
