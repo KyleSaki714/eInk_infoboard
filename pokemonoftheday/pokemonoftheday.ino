@@ -189,6 +189,26 @@ void retrieveData(WiFiClientSecure* client, JsonDocument* pokeInfo, String* xbmD
   delete client;
 }
 
+// Displays the pokemon using the provided info.
+void displayPokemon(JsonDocument* pokeInfo, String* xbmData) {
+  
+  // Extract width and height from the XBM data
+  width = parseXBMWidth(*xbmData);
+  height = parseXBMHeight(*xbmData);
+  xbmArray = parseXBMArray(*xbmData);
+
+  display.clearDisplay();
+
+  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
+  display.display();
+
+  display.setTextColor(WHITE, BLACK);
+  display.setTextWrap(true);
+
+  Serial.println("Image displayed successfully");
+  // TODO delete xbmArray;
+}
+
 void listAllFiles(){
  
   File root = SPIFFS.open("/");
@@ -266,6 +286,7 @@ void setup() {
   display.display();
 
   // TODO: display cached pokemonInfo and image
+  displayPokemon(&pokeInfo, &xbmData);
 
   // try to connect to wifi
 
@@ -345,20 +366,7 @@ void setup() {
   Serial.println(pokeInfo["weight"].as<String>());
   Serial.println(pokeInfo["timestamp"].as<int>());
 
-  // Extract width and height from the XBM data
-  width = parseXBMWidth(xbmData);
-  height = parseXBMHeight(xbmData);
-  xbmArray = parseXBMArray(xbmData);
-
-  display.clearDisplay();
-
-  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
-  display.display();
-
-  display.setTextColor(WHITE, BLACK);
-  display.setTextWrap(true);
-
-  Serial.println("Image displayed successfully");
+  displayPokemon(&pokeInfo, &xbmData);
 }
 
 void loop() {
