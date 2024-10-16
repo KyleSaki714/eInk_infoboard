@@ -69,6 +69,8 @@ uint8_t* xbmArray;
 int infoscrollx = SCREEN_WIDTH;
 const int infoFadeDelay = 2500;
 
+const int PIN_BUTTON = 13;
+
 // ChatGPT function
 int parseXBMWidth(const String& xbmData) {
   int widthIndex = xbmData.indexOf("_width") + 7;
@@ -237,6 +239,9 @@ void setup() {
       ;  // Don't proceed, loop forever
   }
 
+  // initialize button
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
+
   // initialize SPIFFS
   if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED)) {
     Serial.println("An Error has occurred while mounting SPIFFS");
@@ -322,8 +327,8 @@ void setup() {
   // using the timestamp, check if it's a new day
   time_t newTime = newPokeInfo["timestamp"].as<long>();
   time_t oldTime = pokeInfo["timestamp"].as<long>();
-  if (newTime - oldTime > DAY_SECONDS) {
-    Serial.println("1 day passed since last pokemon info retrieval, getting new pkmn..");
+  if (newTime > oldTime) {
+    Serial.println("1 day passed since last pokemon info retrieval, OR new pokemon generated on server, getting new pkmn..");
     // delete &pokeInfo;
     // delete &xbmData;
     pokeInfo = newPokeInfo;
@@ -362,10 +367,7 @@ void setup() {
 
     createXbmFile.close();
   // }
-  } else {
-    Serial.println("could not connect to server, or it's been less than 24 hours since your last pokemon. using cached pokemon info.");
   }
-
 
   Serial.println(pokeInfo["firstAppearance"].as<String>());
   Serial.println(pokeInfo["height"].as<String>());
@@ -387,6 +389,10 @@ void loop() {
   display.println(pokeText);
   display.display();
   delay(infoFadeDelay);
+
+  // TODO: make a pokeText array to properly check button value every loop
+  int btnval = digitalRead(PIN_BUTTON);
+  Serial.println(btnval);
 
   display.clearDisplay();
   display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
