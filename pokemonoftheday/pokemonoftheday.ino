@@ -38,6 +38,7 @@ const char* ssid = "Samsung Galaxy Note9_0270";
 // const char* password = "shaqattack34!";
 const char* password = "02927731";
 
+const int CONNECTWIFI_TIMELIMIT = 3000;
 const char* server = "https://eink-infoboard.onrender.com";
 const char* server_pkmnInfo = "https://eink-infoboard.onrender.com/pokemonInfo";
 const char* server_sprite = "https://eink-infoboard.onrender.com/sprite";
@@ -292,10 +293,18 @@ void setup() {
 
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
+  long startTime = millis();
   while (WiFi.status() != WL_CONNECTED) {
+    // if can't connect to wifi, return from setup() and go to loop()
+    if ((millis() - startTime) > CONNECTWIFI_TIMELIMIT) {
+      Serial.println("Failed to connect to WiFi, using cached Pokemon info...");
+      return;
+    }
     Serial.print(".");
     delay(1000);
   }
+
+
   Serial.println("");
   Serial.print("Connected to network with IP Address: ");
   Serial.println(WiFi.localIP());
