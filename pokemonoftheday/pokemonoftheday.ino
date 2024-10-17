@@ -12,6 +12,7 @@
 #include <Adafruit_SSD1306.h>
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
+#include <List.hpp>
 #include <SPI.h>
 #include <TimeLib.h>
 #include <WiFi.h>
@@ -68,6 +69,8 @@ uint8_t* xbmArray;
 
 int infoscrollx = SCREEN_WIDTH;
 const int infoFadeDelay = 2500;
+List<String> pokeTextList;
+int currPokeText = 0;
 
 const int PIN_BUTTON = 13;
 
@@ -370,6 +373,24 @@ void setup() {
   JsonDocument newPokeInfo;
   String newXbmData;
   retrieveData(client, &newPokeInfo, &newXbmData);
+  Serial.println("sup");
+  pokeTextList.add(pokeInfo["name"].as<String>());
+  String pokeText = "#";
+  pokeText += pokeInfo["id"].as<String>(); 
+  pokeTextList.add(pokeText);
+  pokeText = "types: ";
+  pokeText += pokeInfo["types"].as<String>();
+  pokeTextList.add(pokeText);
+  pokeText = "first appearance: ";
+  pokeText += pokeInfo["firstAppearance"].as<String>();
+  pokeTextList.add(pokeText);
+  pokeText = "height: ";
+  pokeText += pokeInfo["height"].as<String>();
+  pokeTextList.add(pokeText);
+  pokeText = "weight: ";
+  pokeText += pokeInfo["weight"].as<String>();
+  pokeTextList.add(pokeText);
+  Serial.println("sup2");
 
   if (checkPokemonData(newPokeInfo, pokeInfo)) {
     return;
@@ -383,13 +404,23 @@ void setup() {
   cachePokeInfo(&pokeInfo);
   cacheSprite(&xbmData);
 
-  Serial.println(pokeInfo["firstAppearance"].as<String>());
-  Serial.println(pokeInfo["height"].as<String>());
-  Serial.println(pokeInfo["id"].as<int>());
-  Serial.println(pokeInfo["name"].as<String>());
-  Serial.println(pokeInfo["types"].as<String>());
-  Serial.println(pokeInfo["weight"].as<String>());
-  Serial.println(pokeInfo["timestamp"].as<int>());
+
+  // Serial.println(pokeInfo["firstAppearance"].as<String>());
+  // Serial.println(pokeInfo["height"].as<String>());
+  // Serial.println(pokeInfo["id"].as<int>());
+  // Serial.println(pokeInfo["name"].as<String>());
+  // Serial.println(pokeInfo["types"].as<String>());
+  // Serial.println(pokeInfo["weight"].as<String>());
+  // Serial.println(pokeInfo["timestamp"].as<int>());
+
+  Serial.println(pokeTextList[0]);
+  Serial.println(pokeTextList[1]);
+  Serial.println(pokeTextList[2]);
+  Serial.println(pokeTextList[3]);
+  Serial.println(pokeTextList[4]);
+  Serial.println(pokeTextList[5]);
+  Serial.println(pokeTextList[6]);
+  Serial.println(pokeTextList[7]);
 
   displayPokemon(&pokeInfo, &xbmData);
 }
@@ -398,61 +429,11 @@ void loop() {
   display.clearDisplay();
   display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
   display.setCursor(0, 0);
-  String pokeText = pokeInfo["name"];
-  pokeText.replace("\"", "");
-  display.println(pokeText);
+  display.println(pokeTextList[(currPokeText % pokeTextList.getSize())]);
   display.display();
   delay(infoFadeDelay);
+  currPokeText++;
 
-  // TODO: make a pokeText array to properly check button value every loop
   int btnval = digitalRead(PIN_BUTTON);
   Serial.println(btnval);
-
-  display.clearDisplay();
-  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
-  display.setCursor(0, 0);
-  display.print("#");
-  display.println((int) pokeInfo["id"]);
-  display.display();
-  delay(infoFadeDelay);
-
-  display.clearDisplay();
-  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
-  display.setCursor(0, 0);
-  display.print("types: ");
-  String pokeText2 = pokeInfo["types"];
-  pokeText.replace("\"", "");
-  display.println(pokeText2);
-  display.display();
-  delay(infoFadeDelay);
-
-  display.clearDisplay();
-  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
-  display.setCursor(0, 0);
-  display.print("first appearance: ");
-  String pokeText3 = pokeInfo["firstAppearance"];
-  pokeText.replace("\"", "");
-  display.println(pokeText3);
-  display.display();
-  delay(infoFadeDelay);
-
-  display.clearDisplay();
-  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
-  display.setCursor(0, 0);
-  display.print("height: ");
-  String pokeText4 = pokeInfo["height"];
-  pokeText.replace("\"", "");
-  display.println(pokeText4);
-  display.display();
-  delay(infoFadeDelay);
-
-  display.clearDisplay();
-  display.drawXBitmap(32, 0, xbmArray, width, height, WHITE);
-  display.setCursor(0, 0);
-  display.print("weight: ");
-  String pokeText5 = pokeInfo["weight"];
-  pokeText.replace("\"", "");
-  display.println(pokeText5);
-  display.display();
-  delay(infoFadeDelay);
 }
